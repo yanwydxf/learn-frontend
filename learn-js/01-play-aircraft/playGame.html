@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        #map,#aircraft{
+            position: absolute;
+        }
+        #aircraft{
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+        #map{
+            background: url("beijing.jpg");
+            -webkit-animation: mapscroll linear 10s infinite;
+        }
+        @-webkit-keyframes  mapscroll {
+            0%{
+                background-position: 0 0;
+            }
+            100%{
+                background-position: 0 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div style="position: relative">
+    <canvas id="map" width="300" height="400"></canvas>
+    <canvas id="aircraft" width="300" height="400"></canvas>
+</div>
+
+<script>
+    //1. 玩家  敌机  子弹
+    var mycanvs=document.getElementById("aircraft");
+    var context=mycanvs.getContext("2d");
+    //存储图片资源
+    var planearr=[];//存的我方飞机和敌方飞机 的image对象
+    //存储敌人
+    var Enemyarr=[];
+    //第一个入口
+    var n=0;
+    function imgload(url){
+        var img=new Image();
+        img.src=url;
+        img.onload=function(){
+            planearr[url]=img;
+            n++;
+            if(n==2){
+                //调用初始化的方法
+                init();
+            }
+
+        }
+    }
+    //planearr["self.png"]取值
+    imgload("self.png");
+    imgload("enemy.png");
+
+    //初始化方法  入口
+    function init(){
+        //生成玩家
+        var player=new Plane();
+        //生成敌人
+        var timer=setInterval(function(){
+            var n=Math.random();
+            var e1=new Enemy();
+            Enemyarr[n]=e1;
+            Enemyarr[n].name=n;//底下delete
+        },2000)
+        //生成子弹
+        setInterval(function(){
+            var e1=new Bullet(player.x,player.y);
+        },100)
+    }
+    function Plane(){
+        this.x=130;//属性 初始化x
+        this.y=350;//初始化y
+        this.w=planearr["self.png"].width;//从数组中获取图片的宽度
+        this.h=planearr["self.png"].height;//从数组中获取图片的高度
+        context.drawImage(planearr["self.png"],this.x,this.y);
+        var that=this;
+        window.addEventListener("keydown",function(e){
+            if(e.keyCode==37){
+                that.left();
+            }
+            if(e.keyCode==38){
+                that.top();
+            }
+            if(e.keyCode==40){
+                that.down();
+            }
+            if(e.keyCode==39){
+                that.right();
+            }
+        })
+    }
+    Plane.prototype.move=function(newx,newy){
+        //擦除
+        context.clearRect(this.x,this.y,this.w,this.h);
+        //绘制
+        context.drawImage(planearr["self.png"],this.x+=newx,this.y+=newy);
+    }
+    Plane.prototype.left=function(){
+        this.move(-4,0);
+    }
+    Plane.prototype.right=function(){
+        this.move(4,0);
+    }
+    Plane.prototype.top=function(){
+        this.move(0,-4);
+    }
+    Plane.prototype.down=function(){
+        this.move(0,4);
+    }
+    //敌人 属性：x , y ,w ,h  注意敌人的x 随机数， y=0
+    //方法：下落   改变y的值 擦除/绘制
+    //创建敌人，init的方法里ｎｅｗ　敌人（）
+    function Enemy(){
+        this.w=planearr["enemy.png"].width;//从数组中获取图片的宽度
+        this.h=planearr["enemy.png"].height;//从数组中获取图片的高度
+        this.x=parseInt(Math.random()*(300-this.w));//敌人随机的位置
+        this.y=0;//y的话初始值为0
+        context.drawImage(planearr["enemy.png"],this.x,this.y);
+        var that=this;
+        this.timer=setInterval(function(){
+            if(that.y>400)
+            {
+                //停止定制器
+                that.stop();
+            }
+            that.clear();
+            //绘制
+            context.drawImage(planearr["enemy.png"],that.x,that.y+=5);
+        },50);
+    }
+    Enemy.prototype.stop=function(){
+        clearInterval(this.timer);
+        delete Enemyarr[this.name];//删除敌机
+    }
+    Enemy.prototype.clear=function(){
+        //擦除
+        context.clearRect(this.x,this.y,this.w,this.h);
+    }
+
+    //子弹
+    function Bullet(x,y){
+        this.x=x+20;
+        this.y=y;
+        var that=this;
+        this.timer=setInterval(function() {
+            if (that.y < 0) {
+                clearInterval(that.timer);
+            }
+            else {
+                that.fly();
+            }
+        },50);
+    }
+    Bullet.prototype.fly=function() {
+        this.check();// 检测碰撞
+        context.clearRect(this.x, this.y, 2, 4)
+        //绘制
+        context.fillStyle = "red";//五颜六色的子弹，颜色加随机
+        context.fillRect(this.x, this.y-=50, 2, 4);
+    }
+    Bullet.prototype.check=function(){
+        //检测碰撞
+        var x=this.x,y=this.y,w= 2,h=4;//子弹的
+        for(var d in Enemyarr){
+            var en=Enemyarr[d];
+            var x1=en.x,y1=en.y,w1=en.w,h1=en.h;
+            //比对位置 x y  w h  比较 x  y w h
+            if(x+w>x1 && x<x1+w1 && y+h>y1 && y<h1+y1){
+                //调用敌机 stop clear
+                //得先擦除、再去进行绘制
+                Enemyarr[en.name].clear();
+                Enemyarr[en.name].stop();
+            }
+        }
+    }
+
+
+
+
+</script>
+</body>
+</html>

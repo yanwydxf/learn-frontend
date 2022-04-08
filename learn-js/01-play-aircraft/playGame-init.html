@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        #map,#aircraft{
+            position: absolute;
+        }
+        #aircraft{
+            top: 0;
+            left: 0;
+            z-index: 2;
+        }
+        #map{
+            background: url("beijing.jpg");
+            -webkit-animation: mapscroll linear 10s infinite;
+        }
+        @-webkit-keyframes  mapscroll {
+            0%{
+                background-position: 0 0;
+            }
+            100%{
+                background-position: 0 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div style="position: relative">
+    <canvas id="map" width="300" height="400"></canvas>
+    <canvas id="aircraft" width="300" height="400"></canvas>
+</div>
+
+<script>
+    //1. 定义图片资源的数组：预加载 imgonload (敌人飞机、你的飞机)
+    //2. init 初始化的方法。方法里面 实例化飞机、实例化敌人、我的子弹
+    //3. 构建玩家，我方飞机。属性：x,y,w,h 方法：move（）、top()、down()、left()、right()
+    //4. 我方飞机，自带绘制图像，添加一个事件侦听：37-40 上下左右
+</script>
+
+
+</body>
+</html>
